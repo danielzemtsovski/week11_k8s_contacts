@@ -1,6 +1,15 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HOST=os.getenv("MONGO_HOST")
+PORT=int(os.getenv("MONGO_PORT",27017))
+DB=os.getenv("MONGO_DB")
+
 
 class Contact:
     def __init__(self,id:int, first_name:str, last_name:str, phone_number:str):
@@ -16,13 +25,15 @@ class Contact:
                 "phone_number":self.phone_number
                 }
 
+
 def get_database():
     try:
-        client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
+        client = MongoClient(f"mongodb://{HOST}:{PORT}/")
         client.admin.command("ping")                           
         print("✓ Successfully connected to MongoDB!")
-        db = client["contact_data"]
-        return db
+        # db = client["contact_data"]
+        # return db
+        return client["contact_data"]
     except ConnectionFailure as e:
         print(f"✗ Failed to connect to MongoDB: {e}")
         print("Make sure MongoDB is running on localhost:27017")
@@ -30,7 +41,6 @@ def get_database():
      
 db = get_database()
 collection = db["contacts"]
-
 
 def create_contact(contact_data: dict):
     try:
@@ -73,3 +83,4 @@ def delete_contact(id: str):
     except Exception as e:
         print(f"error deleteing contects: {e}")
         return False
+    
